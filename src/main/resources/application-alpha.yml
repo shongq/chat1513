@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    activate:
+      on-profile: alpha
+  redis:
+    host: localhost
+    port: 6379
+    topic: redis-chat
+
+redis:
+  stock:
+    prefix: stocks

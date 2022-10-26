@@ -1,0 +1,18 @@
+spring:
+  profiles:
+    default: alpha
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+  jwt:
+    secret: prj1513@)@@
+  freemarker:
+    cache: false
+    suffix: .ftl
+  kafka:
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
