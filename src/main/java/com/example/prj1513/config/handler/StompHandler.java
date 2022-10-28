@@ -1,8 +1,9 @@
 package com.example.prj1513.config.handler;
 
+import com.example.prj1513.common.utils.ChatUtils;
+import com.example.prj1513.service.KafkaChatService;
 import com.example.prj1513.model.ChatMessage;
 import com.example.prj1513.repository.ChatRoomRepository;
-import com.example.prj1513.service.ChatService;
 import com.example.prj1513.service.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,8 @@ import java.util.Optional;
 public class StompHandler implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatService chatService;
+    private final ChatUtils chatUtils;
+    private final KafkaChatService kafkaChatService;
 
     // websocket을 통해 들어온 요청이 처리 되기전 실행된다.
     @Override
@@ -33,7 +35,7 @@ public class StompHandler implements ChannelInterceptor {
             log.info("CONNECT {}", jwtToken);
             jwtTokenProvider.validateToken(jwtToken);   //token 유효성 검증
         } else if(StompCommand.SUBSCRIBE==accessor.getCommand()){   //채팅방에 대해 구독하는 경우
-            String roomId = chatService.getRoomId(Optional.ofNullable((String) message.getHeaders().get("simpDestination"))
+            String roomId = chatUtils.getRoomId(Optional.ofNullable((String) message.getHeaders().get("simpDestination"))
                                                 .orElse("InvalidRoomId"));
             String sessionId = (String) message.getHeaders().get("simpSessionId");
             String name = Optional.ofNullable((Principal) message.getHeaders().get("simpUser"))
@@ -41,7 +43,7 @@ public class StompHandler implements ChannelInterceptor {
 
             chatRoomRepository.setUserEnterInfo(sessionId, roomId); //사용자 session 등록
             chatRoomRepository.plusUserCount(roomId);   //UserCount +1
-            chatService.sendKafkaChatMessage(ChatMessage.builder()  //메세지 전송
+            kafkaChatService.sendMessage(ChatMessage.builder()  //메세지 전송
                                         .type(ChatMessage.MessageType.ENTER)
                                         .roomId(roomId)
                                         .sender(name)
@@ -53,7 +55,7 @@ public class StompHandler implements ChannelInterceptor {
             String name = Optional.ofNullable((Principal) message.getHeaders().get("simpUser"))
                     .map(Principal::getName).orElse("UnknownUser");
             chatRoomRepository.minusUserCount(roomId);   //UserCount -1
-            chatService.sendKafkaChatMessage(ChatMessage.builder()  //메세지 전송
+            kafkaChatService.sendMessage(ChatMessage.builder()  //메세지 전송
                             .type(ChatMessage.MessageType.QUIT)
                             .roomId(roomId)
                             .sender(name)
