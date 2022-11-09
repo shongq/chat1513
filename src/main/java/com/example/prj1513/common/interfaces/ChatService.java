@@ -2,8 +2,8 @@ package com.example.prj1513.common.interfaces;
 
 import com.example.prj1513.model.ChatMessage;
 
-public interface ChatService {
+public abstract class ChatService {
+    public void sendMessage(ChatMessage chatMessage, boolean isRedis) {}
 
-    void sendMessage(ChatMessage chatMessage);
-
+    public void pubMessage(ChatMessage chatMessage) {}
 }

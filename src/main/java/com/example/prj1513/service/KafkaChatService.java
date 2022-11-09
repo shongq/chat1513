@@ -15,13 +15,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class KafkaChatService implements ChatService {
+public class KafkaChatService extends ChatService {
 
     private final ChatUtils chatUtils;
     private final KafkaTemplate<String, ChatMessage> kafkaTemplate;
 
     //Kafka를 통해 Topic에 메세지 전송
-    public void sendMessage(ChatMessage chatMessage){
+    public void pubMessage(ChatMessage chatMessage){
         chatUtils.makeChatMessage(chatMessage);
         Message<ChatMessage> message = MessageBuilder
                 .withPayload(chatMessage)

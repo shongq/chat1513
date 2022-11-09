@@ -1,6 +1,6 @@
 package com.example.prj1513.controller;
 
-import com.example.prj1513.service.KafkaChatService;
+import com.example.prj1513.service.ChatServiceImpl;
 import com.example.prj1513.model.ChatMessage;
 import com.example.prj1513.repository.ChatRoomRepository;
 import com.example.prj1513.service.JwtTokenProvider;
@@ -15,7 +15,7 @@ public class ChatPubController {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final ChatRoomRepository chatRoomRepository;
-    private final KafkaChatService kafkaChatService;
+    private final ChatServiceImpl chatService;
 
     /**
      * @MessageMapping : websocket "/pub/chat/message"로 들어오는 메시징을 처리한다.
@@ -25,6 +25,6 @@ public class ChatPubController {
         String nickname = jwtTokenProvider.getUserNameFromJwt(token);
         message.setSender(nickname);
         message.setUserCount(chatRoomRepository.getUserCount(message.getRoomId()));
-        kafkaChatService.sendMessage(message);
+        chatService.sendMessage(message, true);
     }
 }

@@ -1,7 +1,7 @@
 package com.example.prj1513.config.handler;
 
 import com.example.prj1513.common.utils.ChatUtils;
-import com.example.prj1513.service.KafkaChatService;
+import com.example.prj1513.service.ChatServiceImpl;
 import com.example.prj1513.model.ChatMessage;
 import com.example.prj1513.repository.ChatRoomRepository;
 import com.example.prj1513.service.JwtTokenProvider;
@@ -24,7 +24,7 @@ public class StompHandler implements ChannelInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUtils chatUtils;
-    private final KafkaChatService kafkaChatService;
+    private final ChatServiceImpl chatService;
 
     // websocket을 통해 들어온 요청이 처리 되기전 실행된다.
     @Override
@@ -43,11 +43,11 @@ public class StompHandler implements ChannelInterceptor {
 
             chatRoomRepository.setUserEnterInfo(sessionId, roomId); //사용자 session 등록
             chatRoomRepository.plusUserCount(roomId);   //UserCount +1
-            kafkaChatService.sendMessage(ChatMessage.builder()  //메세지 전송
+            chatService.sendMessage(ChatMessage.builder()  //메세지 전송
                                         .type(ChatMessage.MessageType.ENTER)
                                         .roomId(roomId)
                                         .sender(name)
-                                        .build());
+                                        .build(), true);
             log.info("SUBSCRIBED {}, {}", name, roomId);
         } else if(StompCommand.DISCONNECT==accessor.getCommand()){  //채팅방 연결 종료인 경우
             String sessionId = (String) message.getHeaders().get("simpSessionId");
@@ -55,11 +55,11 @@ public class StompHandler implements ChannelInterceptor {
             String name = Optional.ofNullable((Principal) message.getHeaders().get("simpUser"))
                     .map(Principal::getName).orElse("UnknownUser");
             chatRoomRepository.minusUserCount(roomId);   //UserCount -1
-            kafkaChatService.sendMessage(ChatMessage.builder()  //메세지 전송
+            chatService.sendMessage(ChatMessage.builder()  //메세지 전송
                             .type(ChatMessage.MessageType.QUIT)
                             .roomId(roomId)
                             .sender(name)
-                            .build());
+                            .build(), true);
             chatRoomRepository.removeUserEnterInfo(sessionId);  //사용자 session 삭제
             log.info("DISCONNECTED {}, {}", sessionId, roomId);
         }

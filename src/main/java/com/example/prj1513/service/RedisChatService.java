@@ -12,14 +12,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class RedisChatService implements ChatService {
+public class RedisChatService extends ChatService {
 
     private final ChannelTopic channelTopic;
     private final RedisTemplate<String, Object> reidsTemplate;
     private final ChatUtils chatUtils;
 
     @Override
-    public void sendMessage(ChatMessage chatMessage) {
+    public void pubMessage(ChatMessage chatMessage) {
         chatUtils.makeChatMessage(chatMessage);
         reidsTemplate.convertAndSend(channelTopic.getTopic(), chatMessage);
     }
